@@ -1,0 +1,3 @@
+;; -*- mode: emacs-lisp -*-
+;; History entries used for anything adaptive display.
+(setq anything-c-adaptive-history (quote ((buffer ("*scratch*" ("" . 1)) ("gradation.h" ("" . 1)) ("*GNU Emacs*" ("" . 1)) ("*WoMan-Log*" ("an" . 1))) (file ("/home/hirkubota/.capkg/albatross/tmp/mahout0.7_0.0.1/usr/local/mahout-0.7/docs/mahout-integration/org/apache/mahout/cf/taste/impl/model/mongodb" ("mongo" . 1)) ("/usr/local/apache2/htdocs/js/jquery/demos/accordion/mouseover.html" ("" . 2)) ("/home/hirkubota/study/social_okashi/initdb.bash" ("initdb" . 1)) ("~/.emacs" ("" . 4))))))

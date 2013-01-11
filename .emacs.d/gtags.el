@@ -1,29 +1,30 @@
 ;;; gtags.el --- gtags facility for Emacs
-(provide 'gtags)
+
 ;;
-;; Copyright (c) 1997, 1998, 1999, 2000, 2006 Tama Communications Corporation
+;; Copyright (c) 1997, 1998, 1999, 2000, 2006, 2007, 2008
+;;	Tama Communications Corporation
 ;;
 ;; This file is part of GNU GLOBAL.
 ;;
-;; GNU GLOBAL is free software; you can redistribute it and/or modify
+;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
-;; any later version.
-;;
-;; GNU GLOBAL is distributed in the hope that it will be useful,
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;; 
+;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;;
+;; 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program; if not, write to the Free Software
-;; Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA.
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;
 
 ;; GLOBAL home page is at: http://www.gnu.org/software/global/
 ;; Author: Tama Communications Corporation
-;; Version: 2.1
+;; Version: 2.5
 ;; Keywords: tools
+;; Required version: GLOBAL 5.7 or later
 
 ;; Gtags-mode is implemented as a minor mode so that it can work with any
 ;; other major modes. Gtags-select mode is implemented as a major mode.
@@ -40,6 +41,25 @@
 ;;	    '(lambda ()
 ;;		(gtags-mode 1)
 ;;	))
+;;
+;; There are two hooks, gtags-mode-hook and gtags-select-mode-hook.
+;; The usage of the hook is shown as follows.
+;;
+;; [Setting to reproduce old 'Gtags mode']
+;;
+;; (setq gtags-mode-hook
+;;   '(lambda ()
+;;      (setq gtags-pop-delete t)
+;;      (setq gtags-path-style 'absolute)
+;; ))
+;;
+;; [Setting to make 'Gtags select mode' easy to see]
+;;
+;; (setq gtags-select-mode-hook
+;;   '(lambda ()
+;;      (setq hl-line-face 'underline)
+;;      (hl-line-mode 1)
+;; ))
 
 ;;; Code
 
@@ -47,6 +67,32 @@
   "Non-nil if Gtags mode is enabled.")
 (make-variable-buffer-local 'gtags-mode)
 
+;;;
+;;; Customizing gtags-mode
+;;;
+(defgroup gtags nil
+  "Minor mode for GLOBAL source code tag system."
+  :group 'tools
+  :prefix "gtags-")
+
+(defcustom gtags-path-style 'root
+  "*Controls the style of path in [GTAGS SELECT MODE]."
+  :type '(choice (const :tag "Relative from the root of the current project" root)
+                 (const :tag "Relative from the current directory" relative)
+                 (const :tag "Absolute" absolute))
+  :group 'gtags)
+
+(defcustom gtags-read-only nil
+  "Gtags read only mode"
+  :type 'boolean
+  :group 'gtags)
+
+(defcustom gtags-pop-delete nil
+  "*If non-nil, gtags-pop will delete the buffer."
+  :group 'gtags
+  :type 'boolean)
+
+;; Variables
 (defvar gtags-current-buffer nil
   "Current buffer.")
 (defvar gtags-buffer-stack nil
@@ -59,8 +105,6 @@
   "Regexp matching tag name.")
 (defconst gtags-definition-regexp "#[ \t]*define[ \t]+\\|ENTRY(\\|ALTENTRY("
   "Regexp matching tag definition name.")
-(defvar gtags-read-only nil
-  "Gtags read only mode")
 (defvar gtags-mode-map (make-sparse-keymap)
   "Keymap used in gtags mode.")
 (defvar gtags-running-xemacs (string-match "XEmacs\\|Lucid" emacs-version)
@@ -72,6 +116,7 @@
 ;
 (define-key gtags-mode-map "\e*" 'gtags-pop-stack)
 (define-key gtags-mode-map "\e." 'gtags-find-tag)
+(define-key gtags-mode-map "\C-x4." 'gtags-find-tag-other-window)
 ;
 ; Old key assignment.
 ;
@@ -120,6 +165,7 @@
 (define-key gtags-select-mode-map "u" 'gtags-pop-stack)
 (define-key gtags-select-mode-map "\C-t" 'gtags-pop-stack)
 (define-key gtags-select-mode-map "\C-m" 'gtags-select-tag)
+(define-key gtags-select-mode-map "\C-o" 'gtags-select-tag-other-window)
 (define-key gtags-select-mode-map "\e." 'gtags-select-tag)
 
 ;;
@@ -162,32 +208,15 @@
 (defun gtags-exist-in-stack (buffer)
   (memq buffer gtags-buffer-stack))
 
-;; is it a function?
-(defun gtags-is-function ()
-  (save-excursion
-    (while (and (not (eolp)) (looking-at "[0-9A-Za-z_]"))
-      (forward-char 1))
-    (while (and (not (eolp)) (looking-at "[ \t]"))
-      (forward-char 1))
-    (if (looking-at "(") t nil)))
-
-;; is it a definition?
-(defun gtags-is-definition ()
-  (save-excursion
-    (if (and (string-match "\.java$" buffer-file-name) (looking-at "[^(]+([^)]*)[ \t]*{"))
-	t
-      (if (bolp)
-	  t
-        (forward-word -1)
-        (cond
-         ((looking-at "define")
-	  (forward-char -1)
-	  (while (and (not (bolp)) (looking-at "[ \t]"))
-	    (forward-char -1))
-	  (if (and (bolp) (looking-at "#"))
-	      t nil))
-         ((looking-at "ENTRY\\|ALTENTRY")
-	  (if (bolp) t nil)))))))
+;; get current line number
+(defun gtags-current-lineno ()
+  (if (= 0 (count-lines (point-min) (point-max)))
+      0
+    (save-excursion
+      (end-of-line)
+      (if (equal (point-min) (point))
+          1
+        (count-lines (point-min) (point))))))
 
 ;; completsion function for completing-read.
 (defun gtags-completing-gtags (string predicate code)
@@ -220,31 +249,38 @@
           ((eq code 'lambda)
            (if (intern-soft string complete-list) t nil)))))
 
+;; get the path of gtags root directory.
+(defun gtags-get-rootpath ()
+  (let (path buffer)
+    (save-excursion
+      (setq buffer (generate-new-buffer (generate-new-buffer-name "*rootdir*")))
+      (set-buffer buffer)
+      (setq n (call-process "global" nil t nil "-pr"))
+      (if (= n 0)
+        (setq path (file-name-as-directory (buffer-substring (point-min)(1- (point-max))))))
+      (kill-buffer buffer))
+    path))
+
 ;;
 ;; interactive command
 ;;
 (defun gtags-visit-rootdir ()
   "Tell tags commands the root directory of source tree."
   (interactive)
-  (let (buffer input n)
-    (if (equal gtags-rootdir nil)
-      (save-excursion
-        (setq buffer (generate-new-buffer (generate-new-buffer-name "*rootdir*")))
-        (set-buffer buffer)
-        (setq n (call-process "global" nil t nil "-pr"))
-        (if (= n 0)
-          (setq gtags-rootdir (file-name-as-directory (buffer-substring (point-min)(1- (point-max)))))
-         (setq gtags-rootdir default-directory))
-        (kill-buffer buffer)))
-    (setq input (read-file-name "Visit root directory: "
-			gtags-rootdir gtags-rootdir t))
+  (let (path input n)
+    (if gtags-rootdir
+      (setq path gtags-rootdir)
+     (setq path (gtags-get-rootpath))
+     (if (equal path nil)
+       (setq path default-directory)))
+    (setq input (read-file-name "Visit root directory: " path path t))
     (if (equal "" input) nil
       (if (not (file-directory-p input))
         (message "%s is not directory." input)
        (setq gtags-rootdir (expand-file-name input))
        (setenv "GTAGSROOT" gtags-rootdir)))))
 
-(defun gtags-find-tag ()
+(defun gtags-find-tag (&optional other-win)
   "Input tag name and move to the definition."
   (interactive)
   (let (tagname prompt input)
@@ -257,7 +293,12 @@
     (if (not (equal "" input))
       (setq tagname input))
     (gtags-push-context)
-    (gtags-goto-tag tagname "")))
+    (gtags-goto-tag tagname "" other-win)))
+
+(defun gtags-find-tag-other-window ()
+  "Input tag name and move to the definition in other window."
+  (interactive)
+  (gtags-find-tag t))
 
 (defun gtags-find-rtag ()
   "Input tag name and move to the referenced point."
@@ -328,52 +369,54 @@
   (interactive)
   (let (tagname flag)
     (setq tagname (gtags-current-token))
-    (if (gtags-is-function)
-        (if (gtags-is-definition) (setq flag "r") (setq flag ""))
-      (setq flag "s"))
     (if (not tagname)
         nil
       (gtags-push-context)
-      (gtags-goto-tag tagname flag))))
+      (gtags-goto-tag tagname "C"))))
 
 ; This function doesn't work with mozilla.
 ; But I will support it in the near future.
 (defun gtags-display-browser ()
   "Display current screen on hypertext browser."
   (interactive)
-  (let (lno)
-    (if (= 0 (count-lines (point-min) (point-max))) nil
-    (save-excursion
-      (end-of-line)
-      (if (equal (point-min) (point))
-          (setq lno 1)
-        (setq lno (count-lines (point-min) (point)))))
-    (call-process "gozilla"  nil nil nil (concat "+" (number-to-string lno)) buffer-file-name))))
+  (call-process "gozilla"  nil nil nil (concat "+" (number-to-string (gtags-current-lineno))) buffer-file-name))
+
+; Private event-point
+; (If there is no event-point then we use this version.
+(eval-and-compile
+  (if (not (fboundp 'event-point))
+      (defun event-point (event)
+	(posn-point (event-start event)))))
 
 (defun gtags-find-tag-by-event (event)
   "Get the expression as a tagname around here and move there."
   (interactive "e")
   (let (tagname flag)
     (if (= 0 (count-lines (point-min) (point-max)))
-        (progn (setq tagname "main") (setq flag ""))
-      (if gtags-running-xemacs (goto-char (event-point event))
-       (select-window (posn-window (event-end event)))
+        (progn (setq tagname "main")
+               (setq flag ""))
+      (if gtags-running-xemacs
+          (goto-char (event-point event))
+        (select-window (posn-window (event-end event)))
         (set-buffer (window-buffer (posn-window (event-end event))))
         (goto-char (posn-point (event-end event))))
       (setq tagname (gtags-current-token))
-      (if (gtags-is-function)
-          (if (gtags-is-definition) (setq flag "r") (setq flag ""))
-        (setq flag "s")))
+      (setq flag "C"))
     (if (not tagname)
         nil
       (gtags-push-context)
       (gtags-goto-tag tagname flag))))
 
-(defun gtags-select-tag ()
+(defun gtags-select-tag (&optional other-win)
   "Select a tag in [GTAGS SELECT MODE] and move there."
   (interactive)
   (gtags-push-context)
-  (gtags-select-it nil))
+  (gtags-select-it nil other-win))
+
+(defun gtags-select-tag-other-window ()
+  "Select a tag in [GTAGS SELECT MODE] and move there in other window."
+  (interactive)
+  (gtags-select-tag t))
 
 (defun gtags-select-tag-by-event (event)
   "Select a tag in [GTAGS SELECT MODE] and move there."
@@ -392,8 +435,12 @@
     (if (and (not (equal gtags-current-buffer nil))
              (not (equal gtags-current-buffer (current-buffer))))
          (switch-to-buffer gtags-current-buffer)
-      (if (not (gtags-exist-in-stack (current-buffer)))
-	  (setq delete t))
+         ; By default, the buffer of the referred file is left.
+         ; If gtags-pop-delete is set to t, the file is deleted.
+         ; Gtags select mode buffer is always deleted.
+         (if (and (or gtags-pop-delete (equal mode-name "Gtags-Select"))
+                  (not (gtags-exist-in-stack (current-buffer))))
+	     (setq delete t))
       (setq context (gtags-pop-context))
       (if (not context)
 	  (message "The tags stack is empty.")
@@ -421,12 +468,17 @@
     (gtags-goto-tag tagname flag)))
 
 ;; goto tag's point
-(defun gtags-goto-tag (tagname flag)
-  (let (option save prefix buffer lines)
+(defun gtags-goto-tag (tagname flag &optional other-win)
+  (let (option context save prefix buffer lines)
     (setq save (current-buffer))
     ; Use always ctags-x format.
-    (setq option (concat "-x" flag))
+    (setq option "-x")
+    (if (equal flag "C")
+        (setq context (concat "--from-here=" (number-to-string (gtags-current-lineno)) ":" buffer-file-name))
+        (setq option (concat option flag)))
     (cond
+     ((equal flag "C")
+      (setq prefix "(CONTEXT)"))
      ((equal flag "P")
       (setq prefix "(P)"))
      ((equal flag "g")
@@ -442,14 +494,24 @@
     (setq buffer (generate-new-buffer (generate-new-buffer-name (concat "*GTAGS SELECT* " prefix tagname))))
     (set-buffer buffer)
     ;
-    ; If project directory is specified, 'Gtags Select Mode' print paths using
-    ; the relative path name from the project directory else absolute path name.
+    ; Path style is defined in gtags-path-style:
+    ;   root: relative from the root of the project (Default)
+    ;   relative: relative from the current directory
+    ;	absolute: absolute (relative from the system root directory)
     ;
-    (if gtags-rootdir
-        (cd gtags-rootdir)
-        (setq option (concat option "a"))) 
+    (cond
+     ((equal gtags-path-style 'absolute)
+      (setq option (concat option "a")))
+     ((equal gtags-path-style 'root)
+      (let (rootdir)
+        (if gtags-rootdir
+          (setq rootdir gtags-rootdir)
+         (setq rootdir (gtags-get-rootpath)))
+        (if rootdir (cd rootdir)))))
     (message "Searching %s ..." tagname)
-    (if (not (= 0 (call-process "global" nil t nil option tagname)))
+    (if (not (= 0 (if (equal flag "C")
+                      (call-process "global" nil t nil option context tagname)
+                      (call-process "global" nil t nil option tagname))))
 	(progn (message (buffer-substring (point-min)(1- (point-max))))
                (gtags-pop-context))
       (goto-char (point-min))
@@ -472,13 +534,15 @@
 	(set-buffer save))
        ((= 1 lines)
 	(message "Searching %s ... Done" tagname)
-	(gtags-select-it t))
+	(gtags-select-it t other-win))
        (t
-	(switch-to-buffer buffer)
+        (if (null other-win)
+            (switch-to-buffer buffer)
+          (switch-to-buffer-other-window buffer))
 	(gtags-select-mode))))))
 
 ;; select a tag line from lines
-(defun gtags-select-it (delete)
+(defun gtags-select-it (delete &optional other-win)
   (let (line file)
     ;; get context from current tag line
     (beginning-of-line)
@@ -496,7 +560,11 @@
       ;; 
       (let ((prev-buffer (current-buffer)))
         ;; move to the context
-        (if gtags-read-only (find-file-read-only file) (find-file file))
+        (if gtags-read-only 
+	    (if (null other-win) (find-file-read-only file) 
+	      (find-file-read-only-other-window file))
+	  (if (null other-win) (find-file file)
+	    (find-file-other-window file)))
         (if delete (kill-buffer prev-buffer)))
       (setq gtags-current-buffer (current-buffer))
       (goto-line line)
@@ -506,7 +574,7 @@
 (defun gtags-make-complete-list ()
   "Make tag name list for completion."
   (interactive)
-  (message "gtags-make-complete-list: Depricated. You need not call this command any longer."))
+  (message "gtags-make-complete-list: Deprecated. You need not call this command any longer."))
 
 ;;;###autoload
 (defun gtags-mode (&optional forces)
@@ -516,6 +584,8 @@ Specify the root directory of project.
 	\\[gtags-visit-rootdir]
 Input tag name and move to the definition.
 	\\[gtags-find-tag]
+Input tag name and move to the definition in other window.
+        \\[gtags-find-tag-other-window]
 Input tag name and move to the referenced point.
 	\\[gtags-find-rtag]
 Input symbol and move to the locations.
@@ -574,5 +644,7 @@ Turning on Gtags-Select mode calls the value of the variable
   (goto-char (point-min))
   (message "[GTAGS SELECT MODE] %d lines" (count-lines (point-min) (point-max)))
   (run-hooks 'gtags-select-mode-hook))
+
+(provide 'gtags)
 
 ;;; gtags.el ends here

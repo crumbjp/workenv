@@ -25,7 +25,7 @@
 ;; 	ascii:-b&h-lucida-bold-r-normal-sans-14-140-75-75-p-92-iso8859-1,
 ;; 	japanese-jisx0208:-b&h-lucida-bold-r-normal-sans-14-140-75-75-p-92-iso8859-1,
 ;; 	katakana-jisx0201:-b&h-lucida-bold-r-normal-sans-14-140-75-75-p-92-iso8859-1")
-;;(cond (window-system
+;(cond (window-system
 ;; (set-default-font "VL Gothic-8")
 ;; (set-fontset-font (frame-parameter nil 'font)
 ;;     'japanese-jisx0208
@@ -64,7 +64,7 @@
 (global-set-key [\C-tab] 'indent-region)
 (global-set-key (kbd "C-c TAB") 'align-entire)
 
-(global-set-key [f12] 'next-error)
+(global-set-key (kbd "<f12>") 'next-error)
 (global-set-key (kbd "ESC <f12>") 'previous-error)
 
 (global-set-key [\C-f12] 'next-error)
@@ -149,6 +149,7 @@
        (define-key anything-map (kbd "C-v") 'anything-next-source)
        (define-key anything-map (kbd "M-v") 'anything-previous-source)
        (global-set-key (kbd "C-;") 'anything)
+       (global-set-key (kbd "C-c ;") 'anything)
        )
 )
 
@@ -191,10 +192,14 @@
 ;; gtags
 (add-hook 'gtags-mode-hook
 	  '(lambda ()
-	     (local-set-key [?\C-.] 'gtags-find-tag)
-	     (local-set-key [?\C-,] 'gtags-find-rtag)
-	     (local-set-key [?\C->] 'gtags-find-symbol)
-	     (local-set-key [?\C-<] 'gtags-pop-stack)
+	     (local-set-key (kbd "C-.")   'gtags-find-tag)
+	     (local-set-key (kbd "C-c .") 'gtags-find-tag)
+	     (local-set-key (kbd "C-,")   'gtags-find-rtag)
+	     (local-set-key (kbd "C-c ,") 'gtags-find-rtag)
+	     (local-set-key (kbd "C->")   'gtags-find-symbol)
+	     (local-set-key (kbd "C-c >") 'gtags-find-symbol)
+	     (local-set-key (kbd "C-<")   'gtags-pop-stack)
+	     (local-set-key (kbd "C-c <") 'gtags-pop-stack)
 	     )
 	  )
 (setq tab-width 2)

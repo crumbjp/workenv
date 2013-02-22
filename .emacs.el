@@ -423,13 +423,24 @@
 ;;(setq special-display-function 'popwin:special-display-popup-window)
 
 ;; text-scale
+;;(global-set-key (kbd "<C-mouse-6>") 'text-scale-increase)
+;;(global-set-key (kbd "<C-mouse-7>") 'text-scale-decrease)
+
+;; (define-key global-map (kbd "C-0")
+;;   '(lambda ()=
+;;      (interactive)
+;;      (progn (text-scale-mode 0)(buffer-face-mode 0))))
 (global-set-key (kbd "<C-mouse-4>") 'text-scale-increase)
 (global-set-key (kbd "<C-mouse-5>") 'text-scale-decrease)
-(global-set-key (kbd "<C-mouse-6>") 'text-scale-increase)
-(global-set-key (kbd "<C-mouse-7>") 'text-scale-decrease)
-(define-key global-map (kbd "C-0")
-  '(lambda ()
+(global-set-key (kbd "C--") 'text-scale-decrease)
+(global-set-key (kbd "C-+") 'text-scale-increase)
+(global-set-key (kbd "C-=") '(lambda ()
      (interactive)
      (progn (text-scale-mode 0)(buffer-face-mode 0))))
-(define-key global-map (kbd "C--") 'text-scale-decrease)
-(define-key global-map (kbd "C-+") 'text-scale-increase)
+
+(global-set-key (kbd "<M-mouse-4>") 'enlarge-window-horizontally)
+(global-set-key (kbd "<M-mouse-5>") 'shrink-window-horizontally)
+(global-set-key (kbd "M--") 'enlarge-window-horizontally)
+(global-set-key (kbd "M-+") 'shrink-window-horizontally)
+(global-set-key (kbd "M-=") 'balance-windows)
+

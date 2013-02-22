@@ -148,8 +148,8 @@ export MANPATH=${MVN_HOME}/man:$MANPATH
 # export CVSROOT=:pserver:user@hostname
 #-----------
 # gtags ( $ cd ?? ; gtags ~/.gtags )
-export GTAGSROOT=/usr/include
-export GTAGSDBPATH=~/.gtags
+# export GTAGSROOT=/usr/include
+# export GTAGSDBPATH=~/.gtags
 
 #-----------
 # ruby

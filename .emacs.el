@@ -444,3 +444,15 @@
 (global-set-key (kbd "M-+") 'shrink-window-horizontally)
 (global-set-key (kbd "M-=") 'balance-windows)
 
+(require 'minimap)
+(defun toggle-minimap ()
+  "toggle minimap create-kill"
+  (interactive)
+  (if (null minimap-bufname)
+      (minimap-create)
+      (minimap-kill)
+      ))
+(global-set-key (kbd "C-x m") 'toggle-minimap)
+
+
+

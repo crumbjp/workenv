@@ -96,9 +96,9 @@ export MAHOUT_HOME=/usr/local/mahout
 export PATH=${MAHOUT_HOME}/bin:${PATH}
 #-----------
 # ant
-# export ANT_HOME=/usr/local/ant
-# export PATH=${ANT_HOME}/bin:${PATH}
-# export MANPATH=${ANT_HOME}/man:$MANPATH
+export ANT_HOME=/usr/local/apache-ant
+export PATH=${ANT_HOME}/bin:${PATH}
+export MANPATH=${ANT_HOME}/man:$MANPATH
 #-----------
 # mvn
 #  mvn install:install-file -DgroupId=org.apache.lucene -DartifactId=lucene-gosen-ipdic -Dversion=2.0.2 -Dpackaging=jar -Dfile=lucene-gosen-2.0.2-ipadic.jar
@@ -178,3 +178,5 @@ export NODE_PATH=/usr/local/nodejs/lib/node_modules/
 export MANPATH=~/sfw/man:/usr/local/man:$MANPATH
 export PATH=~/sfw/sbin:~/sfw/bin:$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 export LD_LIBRARY_PATH=~/sfw/lib:$LD_LIBRARY_PATH:/usr/local/lib
+
+PATH=$PATH:/usr/local/rvm/bin # Add RVM to PATH for scripting

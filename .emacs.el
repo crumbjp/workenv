@@ -5,6 +5,8 @@
 ;;M-x set-buffer-file-coding-system
 ;; view
 
+(setq-default tab-width 2)
+;; C-x = what-cursor-position
 (set-language-environment "Japanese")
 (setq default-buffer-file-coding-system 'utf-8-unix)
 (set-default-coding-systems 'utf-8-unix)
@@ -58,11 +60,11 @@
 (global-set-key "\C-c\C-c" 'comment-region)
 (global-set-key "\C-cm" 'man)
 ;; (global-set-key [\C-tab] 'dabbrev-expand)
-;; (global-set-key [?\C-c\C-tab] 'align-entire)
-(global-set-key (kbd "<backtab>") 'indent-region)
 
-(global-set-key [\C-tab] 'indent-region)
+(global-set-key (kbd "<backtab>") 'indent-region)
 (global-set-key (kbd "C-c TAB") 'align-entire)
+(global-set-key (kbd "C-x <backtab>") 'untabify)
+(global-set-key (kbd "C-x TAB") 'tabify)
 
 (global-set-key (kbd "<f12>") 'next-error)
 (global-set-key (kbd "ESC <f12>") 'previous-error)
@@ -75,6 +77,9 @@
 
 (global-set-key (kbd "C-c w") 'copy-to-register)
 (global-set-key (kbd "C-c y") 'insert-register)
+
+(global-set-key (kbd "C-x M-=") 'count-lines-region)
+;;(global-set-key (kbd "C-x =") 'what-cursor-position)
 
 ;; (load "escreen")
 ;; (escreen-install)
@@ -202,7 +207,6 @@
 	     (local-set-key (kbd "C-c <") 'gtags-pop-stack)
 	     )
 	  )
-(setq tab-width 2)
 
 ;; ruby
 (add-to-list 'load-path "~/.emacs.d/ruby")

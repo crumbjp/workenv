@@ -4,9 +4,13 @@
 ;; save
 ;;M-x set-buffer-file-coding-system
 ;; view
+(require 'package)
+(add-to-list 'package-archives
+             '("melpa" . "http://melpa.milkbox.net/packages/") t)
 
 (setq-default tab-width 2)
 ;; C-x = what-cursor-position
+(setq default-input-method "MacOSX")
 (set-language-environment "Japanese")
 (setq default-buffer-file-coding-system 'utf-8-unix)
 (set-default-coding-systems 'utf-8-unix)
@@ -16,6 +20,8 @@
 (set-keyboard-coding-system 'utf-8-unix)
 ;; (set-clipboard-coding-system 'sjis-dos)
 
+;; refrain auto split window
+(setq split-height-threshold nil)
 
 ;;M-x describe-coding-system (mule-ucs)
 ;;(add-to-list 'load-path "~/.emacs.d/mule-ucs/lisp")
@@ -37,7 +43,7 @@
 (setq backup-by-copying t)
 (defadvice make-backup-file-name
 (around modify-file-name activate)
-(let ((backup-dir "~/.emacs.b")) 
+(let ((backup-dir "~/.emacs.b"))
 (setq backup-dir (expand-file-name backup-dir))
 (unless (file-exists-p backup-dir)(make-directory-internal backup-dir))
 (if (file-directory-p backup-dir)(let* ((file-path (expand-file-name file))
@@ -56,7 +62,9 @@
 (global-set-key "\C-cj" 'goto-line)
 (global-set-key "\C-ch" 'query-replace)
 ;; (global-set-key "\C-c\C-v" 'cvs-update)
-(global-set-key "\C-c\C-v" 'svn-status)
+;; (global-set-key "\C-c\C-v" 'svn-status)
+(global-set-key "\C-c\C-v" 'git-status)
+;; (global-set-key "\C-c\C-v" 'magit-status)
 (global-set-key "\C-c\C-c" 'comment-region)
 (global-set-key "\C-cm" 'man)
 ;; (global-set-key [\C-tab] 'dabbrev-expand)
@@ -102,7 +110,7 @@
 (win:startup-with-window)
 (setq win:use-frame nil)
 (define-key ctl-x-map "C" 'see-you-again)
-(add-hook 'kill-emacs-hook 'win-save-all-configurations) 
+(add-hook 'kill-emacs-hook 'win-save-all-configurations)
 
 (global-set-key (kbd "ESC <right>")  'win-next-window)
 (global-set-key (kbd "ESC <left>") 'win-prev-window)
@@ -133,9 +141,9 @@
 (defconst *dmacro-key* "\C-\\" "繰返し指定キー")
 (global-set-key *dmacro-key* 'dmacro-exec)
 (autoload 'dmacro-exec "dmacro" nil t)
- 
+
 (cond (
-       (string-match "^23\." emacs-version)
+       (string-match "^24\." emacs-version)
        ;; nxml : need compile(elc)
        ;; (load "~/.emacs.d/nxml-mode-20041004/rng-auto.el")
        ;; (setq auto-mode-alist
@@ -168,7 +176,7 @@
 	     (progn
 	       (c-toggle-hungry-state 1)
 	       (c-set-style "k&r")
-	       (setq c-basic-offset 2 indent-tabs-mode nil)	
+	       (setq c-basic-offset 2 indent-tabs-mode nil)
 	       (setq c-default-style "k&r")
 	      ;(setq c-basic-offset 2 indent-tabs-mode t)
 	       )
@@ -182,7 +190,7 @@
 	     (progn
 	       (c-toggle-hungry-state 1)
 	       (c-set-style "k&r")
-	       (setq c-basic-offset 2 indent-tabs-mode nil)	
+	       (setq c-basic-offset 2 indent-tabs-mode nil)
 	       (setq c-default-style "k&r")
 	      ;(setq c-basic-offset 2 indent-tabs-mode t)
 	       )
@@ -211,6 +219,7 @@
 ;; ruby
 (add-to-list 'load-path "~/.emacs.d/ruby")
 (require 'ruby-mode)
+(defun ruby-mode-set-encoding () ())
 (defun ruby-paren-match (arg)
   "RUBY ."
   (interactive "p")
@@ -234,9 +243,67 @@
     )
 )
 
+(add-to-list 'load-path "~/.emacs.d/ruby-end")
+(require 'ruby-end)
 (add-hook 'ruby-mode-hook
           '(lambda ()
+						 (setq c-basic-offset 2 indent-tabs-mode nil)
+						 (setq ruby-deep-indent-paren-style nil)
+						 (abbrev-mode 1)
+						 (electric-pair-mode t)
+						 (electric-indent-mode t)
+						 (electric-layout-mode t)
+						 (define-key ruby-mode-map "{" nil)
+						 (define-key ruby-mode-map "}" nil)
              (local-set-key "\C-]" 'ruby-paren-match)
+             ))
+(add-hook 'before-save-hook 'delete-trailing-whitespace)
+
+(defadvice ruby-indent-line (after unindent-closing-paren activate)
+  (let ((column (current-column))
+        indent offset)
+    (save-excursion
+      (back-to-indentation)
+      (let ((state (syntax-ppss)))
+        (setq offset (- column (current-column)))
+        (when (and (eq (char-after) ?\))
+                   (not (zerop (car state))))
+          (goto-char (cadr state))
+          (setq indent (current-indentation)))))
+    (when indent
+      (indent-line-to indent)
+      (when (> offset 0) (forward-char offset)))))
+
+(require 'coffee-mode)
+(defun coffee-custom ()
+  "coffee-mode-hook"
+  (and (set (make-local-variable 'tab-width) 2)
+       (set (make-local-variable 'coffee-tab-width) 2))
+  )
+
+(add-hook 'coffee-mode-hook
+  '(lambda() (coffee-custom)))
+
+(add-to-list 'load-path "~/.emacs.d/rspec-mode")
+(require 'rspec-mode)
+(custom-set-variables '(rspec-use-rake-flag nil))
+;; C-c , a : Run all spec
+;; C-c , v : Run current file's spec
+;; C-c , s : Run current line's spec in the file
+;; C-c , t : Toggle back and forth between a spec and it's target
+
+
+(add-to-list 'load-path "~/.emacs.d/haml-mode")
+(require 'haml-mode)
+(add-to-list 'auto-mode-alist '("\\.haml$" . haml-mode))
+
+(autoload 'scss-mode "scss-mode")
+(setq scss-compile-at-save nil) ;; 自動コンパイルをオフにする
+(add-to-list 'auto-mode-alist '("\\.scss\\'" . scss-mode))
+(add-hook 'scss-mode-hook
+          '(lambda ()
+						 (setq c-basic-offset 2 indent-tabs-mode nil)
+						 (setq css-indent-offset 2)
              ))
 
 ;; python
@@ -334,10 +401,13 @@
 ;; svnx
 (require 'psvn)
 ;; git
-;;(add-to-list 'load-path "~/.emacs.d/git-emacs")
-;;(require 'git-emacs)
-;;(require 'git-emacs-autoloads)
-;;(require 'git-status)
+;; (add-to-list 'load-path "~/.emacs.d/git-emacs")
+;; (require 'git-emacs)
+;; (require 'git-emacs-autoloads)
+;; (require 'git-status)
+(add-to-list 'load-path "~/.emacs.d/git")
+(require 'git)
+(require 'git-blame)
 
 ;; haskell
 (add-to-list 'load-path "~/.emacs.d/haskell")
@@ -377,7 +447,7 @@
 
 (setq  auto-insert-directory "~/.emacs.d/ai-template/" )
 (load "autoinsert" t)
-(setq auto-insert-alist 
+(setq auto-insert-alist
       (append '(("\\.sh$"  . ["template.sh"   ai-replace])
                 ("pom\\.xml$"  . ["template.pom.xml"   ai-replace])
                 ("\\.xml$" . ["template.xml"  ai-replace])
@@ -459,4 +529,53 @@
 (global-set-key (kbd "C-x m") 'toggle-minimap)
 
 
-
+;; magit
+;; TAB: セクションの表示を切り替える
+;; M-1, M-2, M-3, M-4: セクション表示の切り替え
+;;Section: Untracked file
+;;s: ファイルをステージに追加する(git add)
+;;i: .gitignoreにファイルを追加する
+;;C-u i: ignoreファイルを指定する
+;;I: .git/info/excludeにファイルを追加する
+;;k: ファイルを削除する*1
+;;Section: Unstaged Changing / Staged Changing
+;;s: ファイルをステージに追加する(git add)
+;;S: 全ファイルをステージに追加する
+;;u: ファイルをステージから降ろす
+;;U: 全ファイルをステージから降ろす
+;;k: 変更を取り消す
+;;c: コミットログを書く
+;;C: コミットログをチェンジログ形式で書く？
+;;C-c C-c: コミットする(git commit)
+;;C-c C-a: コミットをやり直す(git commit --amend)
+;;Log
+;;l: ログ一覧を表示する(git log)
+;;L: 詳細ログの一覧を表示する(git log --stat)
+;;ログを選択して RET: ログの詳細を表示する(git log -p)
+;;a: コミットを今のブランチに適用する(git cherry-pick & NOT commit)
+;;A: コミットを今のブランチに適用し、コミットする(git cheery-pick & git commit)
+;;v: コミットを取り消す(git revert)
+;;C-w: コミットのsha1ハッシュをコピーする
+;;=: 今のコミットとの差分を表示する
+;;.: コミットをマークする
+;;h or H: 今のHEADまでのログを表示する
+;;d: ワーキングコピーからあるコミットまでの差分を表示する(git diff)
+;;D: 2つのコミットの差分を表示する
+;;t or T: タグを作成する(git tag)
+;;x: コミットを取り消す(git reset --soft)
+;;X: コミットと変更を取り消す(git reset --hard)
+;;Stash
+;;z: stashを作成する(git stash)
+;;a: stashを適用する(git stash apply)
+;;A: stashをpopする(git stash pop)
+;;k: stashをdropする(git stash drop)
+;;b: ブランチを切り替える(git checkout)
+;;B: 新規ブランチを作成して切り替える(git checkout -b)
+;;w: wazzup?
+;;m or M: マージを行う
+;;X: 手動マージを中止する
+;;e: resolved conflict?
+;;R: rebase
+;;P: push (default remote, current branch)
+;;f: git remote update
+;;F: pull

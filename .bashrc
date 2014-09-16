@@ -1,17 +1,17 @@
 # .bashrc
 # Git memo
 #
-# Commit 
+# Commit
 #   git commit -m "..."  .
 #   git push origin master
-# 
+#
 # Uncommit
 #   git reset   HEAD~
 #   git rebase  HEAD~
 #
 # Put tag
 #   git tag  0.0.1
-#   git push --tags 
+#   git push --tags
 #
 # Untag
 #   git tag  -d 0.0.1
@@ -27,7 +27,7 @@
 # Checkout remote branch to temporary local branch
 #   git branch tmp origin/master
 #   git checkout tmp
-#    or 
+#    or
 #   git checkout -b tmp origin/master
 #
 # Delete the branch
@@ -39,6 +39,8 @@
 if [ -f /etc/bashrc ]; then
 	. /etc/bashrc
 fi
+
+export PS1="[\h \u:\w]\\$ "
 #-----------------
 # LANG
 export LC_ALL=ja_JP.utf8
@@ -47,25 +49,29 @@ export LANGAGE=ja_JP.utf8
 export EDITOR=vim
 #-----------------
 # Bash completion
-export BASH_COMPLETION=~/env/bash_completion
-export BASH_COMPLETION_DIR=~/env/bash_completion.d
-export BASH_COMPLETION_COMPAT_DIR=/env/bash_completion.d
+export BASH_COMPLETION=~/workenv/bash_completion
+export BASH_COMPLETION_DIR=~/workenv/bash_completion.d
+export BASH_COMPLETION_COMPAT_DIR=/workenv/bash_completion.d
 if [ -f $BASH_COMPLETION ]; then
     . $BASH_COMPLETION
+fi
+export GIT_COMPLETION=/workenv/git/contrib/completion/git-completion.bash
+if [ -f $GIT_COMPLETION ]; then
+    . $GIT_COMPLETION
 fi
 
 #-----------------
 # SSH-AGENT
-S_LINK_AUTH_SOCK=~/.ssh/auth_sock
-if [ $SSH_AUTH_SOCK ]; then
-    S_LINK_AUTH_SOCK_DATE=`ls -d -l --time-style='+%Y%m%d' ${S_LINK_AUTH_SOCK}  | awk '{print $6}'`
-    TODAY=`date +'%Y%m%d'`
-    if [ ! -L $S_LINK_AUTH_SOCK ] || [ ! -S `readlink $S_LINK_AUTH_SOCK` ] || [ ! "${TODAY}" = "${S_LINK_AUTH_SOCK_DATE}" ]; then
-	rm -f $S_LINK_AUTH_SOCK
-	ln -s $SSH_AUTH_SOCK $S_LINK_AUTH_SOCK 
-    fi
-fi
-export SSH_AUTH_SOCK=$S_LINK_AUTH_SOCK
+#S_LINK_AUTH_SOCK=~/.ssh/auth_sock
+#if [ $SSH_AUTH_SOCK ]; then
+#    S_LINK_AUTH_SOCK_DATE=`ls -d -l --time-style='+%Y%m%d' ${S_LINK_AUTH_SOCK}  | awk '{print $6}'`
+#    TODAY=`date +'%Y%m%d'`
+#    if [ ! -L $S_LINK_AUTH_SOCK ] || [ ! -S `readlink $S_LINK_AUTH_SOCK` ] || [ ! "${TODAY}" = "${S_LINK_AUTH_SOCK_DATE}" ]; then
+#	rm -f $S_LINK_AUTH_SOCK
+#	ln -s $SSH_AUTH_SOCK $S_LINK_AUTH_SOCK
+#    fi
+#fi
+#export SSH_AUTH_SOCK=$S_LINK_AUTH_SOCK
 # History
 export HISTSIZE=100000
 export HISTFILESIZE=100000
@@ -80,25 +86,25 @@ export TSOCKS_CONF_FILE=~/env/tsocks.conf
 
 #-----------
 # python
-export PYTHON_HOME=/usr/local/python-2.6.6
-export PATH=${PYTHON_HOME}/bin:${PATH}
+#export PYTHON_HOME=/usr/local/python-2.6.6
+#export PATH=${PYTHON_HOME}/bin:${PATH}
 #-----------
 # php
-export PHP_HOME=/usr/local/php
-export PATH=${PHP_HOME}/bin:${PATH}
+#export PHP_HOME=/usr/local/php
+#export PATH=${PHP_HOME}/bin:${PATH}
 #-----------
 # java
-export JAVA_HOME=/usr/java/jdk
-export PATH=${JAVA_HOME}/bin:${PATH}
-export HADOOP_HOME=/usr/local/hadoop
-export PATH=${HADOOP_HOME}/bin:${PATH}
-export MAHOUT_HOME=/usr/local/mahout
-export PATH=${MAHOUT_HOME}/bin:${PATH}
+#export JAVA_HOME=/usr/java/jdk
+#export PATH=${JAVA_HOME}/bin:${PATH}
+#export HADOOP_HOME=/usr/local/hadoop
+#export PATH=${HADOOP_HOME}/bin:${PATH}
+#export MAHOUT_HOME=/usr/local/mahout
+#export PATH=${MAHOUT_HOME}/bin:${PATH}
 #-----------
 # ant
-export ANT_HOME=/usr/local/apache-ant
-export PATH=${ANT_HOME}/bin:${PATH}
-export MANPATH=${ANT_HOME}/man:$MANPATH
+#export ANT_HOME=/usr/local/apache-ant
+#export PATH=${ANT_HOME}/bin:${PATH}
+#export MANPATH=${ANT_HOME}/man:$MANPATH
 #-----------
 # mvn
 #  mvn install:install-file -DgroupId=org.apache.lucene -DartifactId=lucene-gosen-ipdic -Dversion=2.0.2 -Dpackaging=jar -Dfile=lucene-gosen-2.0.2-ipadic.jar
@@ -107,16 +113,16 @@ export MANPATH=${ANT_HOME}/man:$MANPATH
 #  mvn eclipse:eclipse
 #  mvn dependency:copy-dependencies
 #  mvn assembly:assembly
-export MVN_HOME=/usr/local/apache-maven
-export PATH=${MVN_HOME}/bin:${PATH}
-export MANPATH=${MVN_HOME}/man:$MANPATH
+#export MVN_HOME=/usr/local/apache-maven
+#export PATH=${MVN_HOME}/bin:${PATH}
+#export MANPATH=${MVN_HOME}/man:$MANPATH
 #-----------
 # jmeter
 # export JMETER_HOME=/usr/local/jmeter
 # export PATH=${JMETER_HOME}/bin:${PATH}
 # export MANPATH=${JMETER_HOME}/man:$MANPATH
 #-----------
-# custom openssl 
+# custom openssl
 # export OPENSSL_HOME=/usr/local/ssl
 # export PATH=${OPENSSL_HOME}/bin:${PATH}
 # export LD_LIBRARY_PATH=${OPENSSL_HOME}/lib:$LD_LIBRARY_PATH
@@ -153,8 +159,8 @@ export MANPATH=${MVN_HOME}/man:$MANPATH
 
 #-----------
 # ruby
-if [[ -s /usr/local/rvm/scripts/rvm ]] ; then 
-    source /usr/local/rvm/scripts/rvm ; 
+if [[ -s /usr/local/rvm/scripts/rvm ]] ; then
+    source /usr/local/rvm/scripts/rvm ;
 fi
 # if [[ -s "$HOME/.rvm/scripts/rvm" ]]; then source "$HOME/.rvm/scripts/rvm"; fi
 # PATH=$PATH:$HOME/.rvm/bin # Add RVM to PATH for scripting
@@ -178,5 +184,8 @@ export NODE_PATH=/usr/local/nodejs/lib/node_modules/
 export MANPATH=~/sfw/man:/usr/local/man:$MANPATH
 export PATH=~/sfw/sbin:~/sfw/bin:$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 export LD_LIBRARY_PATH=~/sfw/lib:$LD_LIBRARY_PATH:/usr/local/lib
+export PATH=/Applications/Emacs.app/Contents/MacOS:${PATH}
 
 PATH=$PATH:/usr/local/rvm/bin # Add RVM to PATH for scripting
+
+source ~/.env

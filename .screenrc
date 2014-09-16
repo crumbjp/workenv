@@ -60,9 +60,10 @@ bindkey ^[OB screen
 
 bind u encoding utf-8
 bind e encoding euc
+bind s encoding sjis
 # 
 bind l stuff 'for h in `cat hostlist` ;do screen -t $h  ssh $h; done'
-bind s stuff 'H= screen -t $H  ;ssh $H'
+#bind s stuff 'H= screen -t $H  ;ssh $H'
 #bindkey -t ;lab stuff  'for h in ` for i in {1..14} ; do  printf "lab-wisact1%02dzd " $i ;done ` ;do screen -t $h  ssh $h; done'
 #bindkey -t ;stg stuff  'for h in ` for i in {1..14} ; do  printf "stg-wisact1%02dzd " $i ;done ` ;do screen -t $h  ssh $h; done'
 #bindkey -t ;pro stuff  ''

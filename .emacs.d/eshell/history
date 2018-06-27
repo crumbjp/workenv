@@ -75,3 +75,4 @@ cat fish_dict2.csv | wc -l
 diff ~/Downloads/master.csv /tmp/after.csv 
 quit
 exit
+ls data/

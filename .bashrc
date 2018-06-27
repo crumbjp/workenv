@@ -43,9 +43,10 @@ fi
 export PS1="[\h \u:\w]\\$ "
 #-----------------
 # LANG
-export LC_ALL=ja_JP.utf8
-export LANG=ja_JP.utf8
-export LANGAGE=ja_JP.utf8
+export LC_CTYPE=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+export LANG==en_US.UTF-8
+export LANGUAGE==en_US.UTF-8
 export EDITOR=vim
 #-----------------
 # Bash completion
@@ -55,10 +56,11 @@ export BASH_COMPLETION_COMPAT_DIR=/workenv/bash_completion.d
 if [ -f $BASH_COMPLETION ]; then
     . $BASH_COMPLETION
 fi
-export GIT_COMPLETION=/workenv/git/contrib/completion/git-completion.bash
+export GIT_COMPLETION=~/workenv/git/contrib/completion/git-completion.bash
 if [ -f $GIT_COMPLETION ]; then
     . $GIT_COMPLETION
 fi
+
 
 #-----------------
 # SSH-AGENT
@@ -157,35 +159,56 @@ export TSOCKS_CONF_FILE=~/env/tsocks.conf
 # export GTAGSROOT=/usr/include
 # export GTAGSDBPATH=~/.gtags
 
-#-----------
-# ruby
-if [[ -s /usr/local/rvm/scripts/rvm ]] ; then
-    source /usr/local/rvm/scripts/rvm ;
-fi
-# if [[ -s "$HOME/.rvm/scripts/rvm" ]]; then source "$HOME/.rvm/scripts/rvm"; fi
-# PATH=$PATH:$HOME/.rvm/bin # Add RVM to PATH for scripting
-
 # Oracle
 # export ORACLE_HOME=/usr/local/instantclient_11_1
 # export TNS_ADMIN=${ORACLE_HOME}
 # export PATH=$ORACLE_HOME:$PATH
 # export LD_LIBRARY_PATH=$ORACLE_HOME:$LD_LIBRARY_PATH
 
-#-----------
-# node.js
-export NODEJS_HOME=/usr/local/nodejs
-export PATH=${NODEJS_HOME}/bin:${PATH}
-export MANPATH=${NODEJS_HOME}/man:$MANPATH
-export LD_LIBRARY_PATH=${NODEJS_HOME}/lib:$LD_LIBRARY_PATH
-export NODE_PATH=/usr/local/nodejs/lib/node_modules/
-
 #----------------
 # path
 export MANPATH=~/sfw/man:/usr/local/man:$MANPATH
-export PATH=~/sfw/sbin:~/sfw/bin:$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+export PATH=~/sfw/sbin:~/sfw/bin:$PATH
 export LD_LIBRARY_PATH=~/sfw/lib:$LD_LIBRARY_PATH:/usr/local/lib
 export PATH=/Applications/Emacs.app/Contents/MacOS:${PATH}
 
-PATH=$PATH:/usr/local/rvm/bin # Add RVM to PATH for scripting
-
 source ~/.env
+alias emacs=Emacs
+export PATH="$HOME/.rbenv/bin:$PATH"
+eval "$(rbenv init -)"
+
+#peco-select-history() {
+#  declare l=$(HISTTIMEFORMAT= history | sort -k1,1nr | perl -ne 'BEGIN { my @lines = (); } s/^\s*\d+\s*//; $in=$_; if (!(grep {$in eq $_} @lines)) { push(@lines, $in); print $in; }' | peco --query "")
+#  READLINE_LINE="$l"
+#  READLINE_POINT=${#l}
+#  if [ -n "$READLINE_LINE" ] ; then
+#    # Replace the last entry, "peco-history", with $READLINE_LINE
+#    history -s $READLINE_LINE
+#
+#    if type osascript > /dev/null 2>&1 ; then
+#      # Send UP keystroke to console
+#      (osascript -e 'tell application "System Events" to keystroke (ASCII character 30)' &)
+#    fi
+#
+#    # Uncomment below to execute it here directly
+#    # echo $READLINE_LINE >&2
+#    # eval $READLINE_LINE
+#	fi
+#}
+#bind -x '"\C-r": peco-select-history'
+#bind    '"\C-xr": reverse-search-history'
+
+export PATH=~/.rbenv/bin:$PATH
+eval "$(rbenv init -)"
+export PATH=~/.nodenv/bin:$PATH
+eval "$(nodenv init -)"
+export PATH=~/.pyenv/bin:$PATH
+eval "$(pyenv init -)"
+
+export CUDA_HOME=/usr/local/cuda
+export DYLD_LIBRARY_PATH="$DYLD_LIBRARY_PATH:$CUDA_HOME/lib"
+export PATH="$CUDA_HOME/bin:$PATH"
+
+export PATH="/Users/kubota/.phpenv/bin:$PATH"
+eval "$(phpenv init -)"
+eval $(docker-machine env)
